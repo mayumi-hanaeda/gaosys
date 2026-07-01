@@ -1,0 +1,22 @@
+.DS_Store
+node_modules/
+
+# Local clasp / OAuth credentials
+.clasp.json
+.clasprc.json
+client_secret*.json
+*-oauth*.json
+*.credentials.json
+.local/
+
+# Generated browser inspection artifacts
+.playwright-cli/
+.playwright-mcp/
+
+# Generated test and run artifacts
+output/
+
+# Local editor and temporary files
+*.log
+*.tmp
+*.swp

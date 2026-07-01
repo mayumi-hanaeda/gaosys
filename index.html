@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  
+  <title>タダスク講師 申込みフォーム</title>
+  
+  <style>
+    /* スタイル定義は変更ありません */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+      margin: 0; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex; 
+      justify-content: center; 
+      padding: 2em 1em; 
+    }
+    
+    .form-container { 
+      max-width: 600px; 
+      width: 100%; 
+      margin: auto; 
+      padding: 3em; 
+      border: none;
+      border-radius: 20px; 
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1), 0 0 0 1px rgba(255,255,255,0.3);
+    }
+    
+    h2 { 
+      text-align: center; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-top: 0; 
+      margin-bottom: 2em;
+      font-size: 1.8em;
+      font-weight: 700;
+    }
+    
+    .form-group { 
+      margin-bottom: 2em; 
+      position: relative; 
+    }
+    
+    label { 
+      display: block; 
+      margin-bottom: 0.8em; 
+      font-weight: 600; 
+      color: #2d3748;
+      font-size: 1em;
+    }
+    
+    input[type="text"], select, textarea { 
+      width: 100%; 
+      padding: 15px 20px; 
+      box-sizing: border-box; 
+      border: 2px solid #e2e8f0; 
+      border-radius: 12px; 
+      transition: all 0.3s ease;
+      background: rgba(255, 255, 255, 0.8);
+      font-size: 16px;
+      color: #2d3748;
+    }
+    
+    input[type="text"]:focus, select:focus, textarea:focus { 
+      border-color: #667eea; 
+      outline: none; 
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      background: rgba(255, 255, 255, 1);
+      transform: translateY(-2px);
+    }
+
+    input[type="text"]:focus:not(.no-hover-animation):not(.no-focus-animation),
+    select:focus:not(.no-hover-animation):not(.no-focus-animation),
+    textarea:focus:not(.no-hover-animation):not(.no-focus-animation) {
+      transform: translateY(-2px);
+    }
+    
+    .suggestions { 
+      list-style: none; 
+      padding: 0; 
+      margin: 0; 
+      border: 2px solid #667eea; 
+      border-top: none; 
+      border-radius: 0 0 12px 12px; 
+      position: absolute; 
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(10px);
+      width: 100%; 
+      z-index: 10; 
+      max-height: 200px; 
+      overflow-y: auto; 
+    }
+    
+    .suggestions li { 
+      padding: 15px 20px; 
+      cursor: pointer; 
+      transition: all 0.2s ease;
+      border-bottom: 1px solid #f7fafc;
+    }
+    
+    .suggestions li:hover { 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      transform: translateX(5px);
+    }
+    
+    .suggestions li:last-child {
+      border-bottom: none;
+    }
+    
+    .submit-button { 
+      display: block; 
+      width: 100%; 
+      padding: 18px 30px; 
+      font-size: 18px; 
+      font-weight: 600;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white; 
+      border: none; 
+      border-radius: 12px; 
+      cursor: pointer; 
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 1em;
+    }
+    
+    .submit-button:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+    }
+    
+    .submit-button:active:not(:disabled) {
+      transform: translateY(-1px);
+    }
+    
+    .submit-button:disabled { 
+      background: linear-gradient(135deg, #a0aec0 0%, #cbd5e0 100%);
+      cursor: not-allowed; 
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .required-mark { 
+      color: #e53e3e; 
+      margin-left: 4px; 
+      font-weight: 600; 
+    }
+    
+    .loading-overlay, .message-box { 
+      padding: 25px; 
+      text-align: center; 
+      border-radius: 12px; 
+      margin-bottom: 2em;
+      font-weight: 600;
+    }
+    
+    .loading-overlay { 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    .message-box.success { 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: 2px solid #667eea;
+    }
+    
+    .message-box.error { 
+      background: linear-gradient(135deg, #e53e3e 0%, #f56565 100%);
+      color: white;
+      border: 2px solid #fc8181;
+    }
+    
+    .radio-group {
+      margin-bottom: 2em;
+    }
+    
+    .radio-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .radio-button {
+      position: relative;
+    }
+    
+    .radio-button input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+    }
+    
+    .radio-button-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 15px 25px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      color: #2d3748;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      z-index: 0;
+    }
+    
+    .radio-button-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+    
+    .radio-button-label:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      transition: left 0.3s ease;
+      z-index: -1;
+    }
+    
+    .radio-button input[type="radio"]:checked + .radio-button-label {
+      color: white;
+      border-color: #667eea;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    .radio-button input[type="radio"]:checked + .radio-button-label:before {
+      left: 0;
+    }
+    
+    .radio-button-label:hover {
+      border-color: #667eea;
+      transform: translateY(-1px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+    }
+    
+    .checkbox-group {
+      margin-bottom: 2em;
+    }
+    
+    .checkbox-item {
+      position: relative;
+      margin-bottom: 12px;
+    }
+    
+    .checkbox-item input[type="checkbox"] {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+    }
+    
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 15px 25px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      color: #2d3748;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      z-index: 0;
+    }
+    
+    .checkbox-label:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #ed8936 0%, #f6ad55 100%);
+      transition: left 0.3s ease;
+      z-index: -1;
+    }
+    
+    .checkbox-item input[type="checkbox"]:checked + .checkbox-label {
+      color: white;
+      border-color: #ed8936;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(237, 137, 54, 0.3);
+    }
+    
+    .checkbox-item input[type="checkbox"]:checked + .checkbox-label:before {
+      left: 0;
+    }
+    
+    .checkbox-label:hover {
+      border-color: #ed8936;
+      transform: translateY(-1px);
+      box-shadow: 0 5px 15px rgba(237, 137, 54, 0.2);
+    }
+    
+    .checkbox-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+    
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 12px center;
+      background-repeat: no-repeat;
+      background-size: 16px;
+      padding-right: 40px;
+    }
+    
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+      font-family: inherit;
+    }
+    
+    .info-message {
+      font-size: 0.9em;
+      color: #718096;
+      line-height: 1.6;
+      margin-top: 0.5em;
+    }
+
+    /* レスポンシブ対応 */
+    @media (max-width: 768px) {
+      .form-container {
+        padding: 2em;
+        margin: 1em;
+      }
+      h2 {
+        font-size: 1.5em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="form-container">
+    <? if (logoImageUrl) { ?>
+      <img src="<?= logoImageUrl ?>" alt="タダスクロゴ" style="width: 100%; max-width: 600px; display: block; margin: 0 auto 2em;">
+    <? } ?>
+
+    <div v-if="serverMessage" class="message-box" :class="{ success: !isError, error: isError }">
+      {{ serverMessage }}
+    </div>
+    
+    <div v-if="isLoading" class="loading-overlay">
+      データを読み込んでいます...
+    </div>
+
+    <form @submit.prevent="submitForm" v-if="!formSubmitted && !isLoading">
+      
+      <!-- ▼▼▼ 修正箇所 ▼▼▼ -->
+      <!-- 「希望する内容」のセクションを完全に削除しました -->
+      <!-- ▲▲▲ 修正ここまで ▲▲▲ -->
+
+      <div class="form-group">
+        <label for="name">お名前<span class="required-mark">*</span></label>
+        <input type="text" id="name" v-model.trim="form.name" @input="onNameInput" autocomplete="off" placeholder="山田 太郎">
+        <ul v-if="suggestions.length > 0" class="suggestions">
+          <li v-for="s in suggestions" :key="s.fullName" @click="selectName(s)">
+            {{ s.fullName }} ({{ s.nickname }})
+          </li>
+        </ul>
+        <div v-if="showNameWarning" style="color: #e53e3e; margin-top: 1em; text-align: center; font-weight: 600;">
+          ※タダメンの名前を入力して下さい※
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="tadasukeName">タダスクネーム<span class="required-mark">*</span></label>
+        <input type="text" id="tadasukeName" v-model="form.tadasukeName" placeholder="サジェストから選択すると自動入力されます">
+      </div>
+
+      <div class="form-group radio-group">
+        <label>タダスク講師スタートアップMTG参加希望日<span class="required-mark">*</span>
+        <p>（毎月第3月曜日20:00～21:00に定期開催）</p></label>
+              
+        <div class="radio-buttons">
+          <div class="radio-button" v-for="option in startTimes" :key="option.value">
+            <input type="radio" :id="option.value" name="startTime" :value="option.value" v-model="form.startTime">
+            <label :for="option.value" class="radio-button-label">
+              <svg class="radio-button-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+              </svg>
+              <span>{{ option.display }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label>オプション（希望する方はチェック）</label>
+        <div class="checkbox-item">
+          <input type="checkbox" id="challenge" v-model="form.challenge">
+          <label for="challenge" class="checkbox-label">
+            <svg class="checkbox-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M15 5H21V7H15V5ZM11 9H21V11H11V9ZM7 13H21V15H7V13ZM3 17H21V19H3V17Z" />
+            </svg>
+            <span>チャレンジ講師</span>
+          </label>
+        </div>
+        <div class="info-message">
+          <p>※チェックを入れなくても、新講師へのオリエンテーションとサポーター制度は必ず付帯します</p>
+          <p>※チャレンジ講師とは、全国居宅ICT化ツアーのような複数名での登壇や、Zoomの操作などに不安がある方が講義だけを行いたい場合を指します。</p>         
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="freeText">自由記載（ご意見・ご質問など）</label>
+        <textarea id="freeText" rows="4" v-model="form.freeText" placeholder="ご自由にお書きください"></textarea>
+      </div>
+      
+      <button type="submit" class="submit-button" :disabled="isSubmitting || !isFormValid">
+        {{ isSubmitting ? '送信中...' : '入力内容を送信する' }}
+      </button>
+    </form>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      // =================================================================
+      // データプロパティ
+      // コンポーネントの状態を管理する変数群
+      // =================================================================
+      data() {
+        return {
+          // --- UIの状態管理 ---
+          isLoading: true,      // マスターデータ読み込み中の状態
+          isSubmitting: false,  // フォーム送信中の状態
+          formSubmitted: false, // フォーム送信が完了したか
+          serverMessage: '',    // サーバーからの通知メッセージ
+          isError: false,       // 通知がエラーメッセージか
+          
+          // --- データ管理 ---
+          masterNameList: [],   // GASから取得した講師マスターデータの完全なリスト
+          suggestions: [],      // 入力に応じてフィルタリングされたサジェスト候補
+          startTimes: [], // 動的に生成される日付の選択肢（オブジェクト配列）
+          
+          // --- フォーム入力データ ---
+          // v-modelディレクティブでHTML要素と双方向バインディングされる
+          form: {
+            // ▼▼▼ 修正箇所 ▼▼▼
+            // mainCheck と mainCheckOther を削除しました
+            // ▲▲▲ 修正ここまで ▲▲▲
+            name: '',
+            tadasukeName: '', 
+            startTime: '', // 初期値を未選択（空文字列）に設定
+            challenge: false,
+            freeText: ''
+          }
+        }
+      },
+      
+      // =================================================================
+      // 算出プロパティ
+      // データプロパティを元に動的に計算される値
+      // =================================================================
+      computed: {
+        /**
+         * @property {boolean} isNameInList - 入力された名前がマスターリストに存在するかを判定します。
+         */
+        isNameInList() {
+          if (!this.form.name) return false;
+          return this.masterNameList.some(item => item.fullName === this.form.name.trim());
+        },
+
+        /**
+         * @property {boolean} isFormValid - フォームの必須項目がすべて有効か判定します。
+         */
+        isFormValid() {
+          // ▼▼▼ 修正箇所 ▼▼▼
+          // mainCheckのバリデーションを削除しました
+          return this.form.name.trim() !== '' 
+               && this.form.tadasukeName.trim() !== '' 
+               && this.form.startTime !== '' 
+               && this.isNameInList;
+          // ▲▲▲ 修正ここまで ▲▲▲
+        },
+
+        /**
+         * @property {boolean} showNameWarning - 名前がリストにない場合に警告を表示するかを判定します。
+         */
+        showNameWarning() {
+          return this.form.name.trim() !== '' && !this.isNameInList;
+        }
+      },
+
+      // =================================================================
+      // メソッド
+      // イベントや特定の処理をまとめた関数群
+      // =================================================================
+      methods: {
+        /**
+         * 「お名前」欄の入力に応じてサジェスト候補を更新します。
+         * @method onNameInput
+         */
+        onNameInput() {
+          if (!this.form.name) {
+            this.suggestions = [];
+            return;
+          }
+          const trimmedInput = this.form.name.trim();
+          const inputHira = this.katakanaToHiragana(trimmedInput);
+          this.suggestions = this.masterNameList.filter(item => {
+            return item.fullName.includes(trimmedInput) || item.hiragana.includes(inputHira);
+          }).slice(0, 5);
+        },
+        
+        /**
+         * サジェスト候補をクリックした際の処理です。
+         * @method selectName
+         * @param {object} selected - 選択された講師オブジェクト { fullName, hiragana, nickname }
+         */
+        selectName(selected) {
+          this.form.name = selected.fullName;
+          this.form.tadasukeName = selected.nickname;
+          this.suggestions = [];
+        },
+        
+        /**
+         * フォームの送信処理です。
+         * @method submitForm
+         */
+        submitForm() {
+          if (!this.isFormValid) {
+            this.serverMessage = '必須項目（お名前、タダスクネーム、希望開始時期）を正しく入力してください。';
+            this.isError = true;
+            return;
+          }
+
+          this.isSubmitting = true;
+          this.serverMessage = '';
+
+          google.script.run
+            .withSuccessHandler(response => {
+              this.isSubmitting = false;
+              this.serverMessage = response.message;
+              if (response.success) {
+                this.isError = false;
+                this.formSubmitted = true;
+              } else {
+                this.isError = true;
+              }
+            })
+            .withFailureHandler(error => {
+              this.isSubmitting = false;
+              this.serverMessage = '通信エラーが発生しました: ' + error.message;
+              this.isError = true;
+            })
+            .saveFormData(this.form);
+        },
+        
+        /**
+         * 文字列内のカタカナをひらがなに変換します。
+         * @method katakanaToHiragana
+         * @param {string} str - 変換対象の文字列
+         * @returns {string} 変換後の文字列
+         */
+        katakanaToHiragana(str) {
+            return str.replace(/[\u30A1-\u30F6]/g, match => String.fromCharCode(match.charCodeAt(0) - 0x60));
+        },
+        
+        /**
+         * バックエンドからマスターデータを非同期で取得します。
+         * @method fetchMasterData
+         */
+        fetchMasterData() {
+          google.script.run
+            .withSuccessHandler(data => {
+              this.masterNameList = data;
+              this.isLoading = false;
+            })
+            .withFailureHandler(error => {
+              this.serverMessage = 'マスターデータの読み込みに失敗しました。ページを再読み込みしてください。';
+              this.isError = true;
+              this.isLoading = false;
+            })
+            .getMasterData();
+        },
+        
+        /**
+         * 未来の第3月曜日を3つ生成し、表示用と送信用データを準備します。
+         * @method generateStartDates
+         */
+        generateStartDates() {
+          const dates = [];
+          const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
+          let currentDate = new Date();
+
+          while (dates.length < 3) {
+            let targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            let mondaysCount = 0;
+
+            // 月の最初の日から順に月曜日を探す
+            for (let day = 1; day <= 31; day++) {
+              targetDate.setDate(day);
+              if (targetDate.getMonth() !== currentDate.getMonth()) break;
+
+              if (targetDate.getDay() === 1) { // 1は月曜日
+                mondaysCount++;
+                if (mondaysCount === 3) {
+                  // 3回目の月曜日が見つかった
+                  // ただし、それが過去の日付でないかチェック
+                  if (targetDate > new Date()) {
+                    // 表示用文字列 (例: 2025年9月15日(月))
+                    const display = `${targetDate.getFullYear()}年${targetDate.getMonth() + 1}月${targetDate.getDate()}日(${daysOfWeek[targetDate.getDay()]})`;
+                    
+                    // 送信用文字列 (例: 2025-09-15)
+                    const value = targetDate.getFullYear() + '-' +
+                                ('0' + (targetDate.getMonth() + 1)).slice(-2) + '-' +
+                                ('0' + targetDate.getDate()).slice(-2);
+
+                    dates.push({ display: display, value: value });
+                  }
+                  break; // この月の探索は終了
+                }
+              }
+            }
+            // 次の月へ
+            currentDate.setMonth(currentDate.getMonth() + 1);
+          }
+          this.startTimes = dates;
+        }
+      },
+      
+      // =================================================================
+      // ライフサイクルフック
+      // 特定のタイミングで自動的に実行される関数
+      // =================================================================
+      /**
+       * Vueインスタンスがマウントされた時に実行されます。
+       * @hook mounted
+       */
+      mounted() {
+        this.fetchMasterData();
+        this.generateStartDates();
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

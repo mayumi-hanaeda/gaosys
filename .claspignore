@@ -1,0 +1,13 @@
+**/.DS_Store
+**/node_modules/**
+.clasprc.json
+client_secret*.json
+*-oauth*.json
+.local/**
+**/.local/**
+tests/**
+scripts/**
+ops/**
+output/**
+.playwright-mcp/**
+.playwright-cli/**

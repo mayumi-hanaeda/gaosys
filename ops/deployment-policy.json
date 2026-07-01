@@ -1,0 +1,44 @@
+{
+  "trackedFiles": [
+    "appsscript.json",
+    "architecture.html",
+    "code.js",
+    "domain.js",
+    "dry_run.js",
+    "index.html",
+    "integration_test.js",
+    "チャット通知Bot.js",
+    "のぐっちさんcss.html",
+    "のぐっちさんindex.html",
+    "ヤススさんcode.js",
+    "ヤススさんindex.html",
+    "仕様確認.js",
+    "無題.js"
+  ],
+  "activeFiles": [
+    "appsscript.json",
+    "code.js",
+    "domain.js",
+    "dry_run.js",
+    "index.html",
+    "integration_test.js",
+    "チャット通知Bot.js"
+  ],
+  "protectedFiles": {
+    "architecture.html": "162e5df68a7fdcff128c0e98d61b4537c837f00a883ee49c776ea976f0c34aee",
+    "のぐっちさんcss.html": "15db1dcc4e2d622dfd36de6845a279a89f36a6a4f3bec7a98b4fe72bbf1a3902",
+    "のぐっちさんindex.html": "0a69d84b4980dce68a0e0a18679d63675107f1f6a96eca5895ab1fed5eb78dd5",
+    "ヤススさんcode.js": "2177cbb999f30bb5b839006c90d95a44f50974c6e7650841d29fb4b8ba4456ee",
+    "ヤススさんindex.html": "637b8802579f2e70753e8ad94c751bf303c7f33a5bfaadf968b8c1a551598778",
+    "仕様確認.js": "c04572677d2d83810c3bef283279bd23ed4ad90ab7492d3a595c695ea53e1536",
+    "無題.js": "c12c4a1fed413f824b56db3d54947abfdcad1107fdeecc467db3db06a32d2b32"
+  },
+  "requiredIgnorePatterns": [
+    "tests/**",
+    "scripts/**",
+    "ops/**",
+    "output/**",
+    ".playwright-mcp/**",
+    ".playwright-cli/**"
+  ]
+}

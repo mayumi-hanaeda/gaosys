@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  
+  <title>タダスク講師 申込みフォーム</title>
+  
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 0; background-color: #f7f7f7; display: flex; justify-content: center; padding: 2em 1em; }
+    .form-container { max-width: 600px; width: 100%; margin: auto; padding: 2em; border: 1px solid #ddd; border-radius: 8px; background-color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    h2 { text-align: center; color: #333; margin-top: 0; }
+    .form-group { margin-bottom: 1.5em; position: relative; }
+    label { display: block; margin-bottom: 0.5em; font-weight: bold; color: #555; }
+    input[type="text"], select, textarea { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; transition: border-color 0.2s; }
+    input[type="text"]:focus, select:focus, textarea:focus { border-color: #4285f4; outline: none; }
+    .suggestions { list-style: none; padding: 0; margin: 0; border: 1px solid #ccc; border-top: none; border-radius: 0 0 4px 4px; position: absolute; background-color: white; width: 100%; z-index: 10; max-height: 200px; overflow-y: auto; }
+    .suggestions li { padding: 10px; cursor: pointer; }
+    .suggestions li:hover { background-color: #f0f0f0; }
+    button { display: block; width: 100%; padding: 12px 15px; font-size: 16px; background-color: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
+    button:disabled { background-color: #ccc; cursor: not-allowed; }
+    .required-mark { color: #d9534f; margin-left: 4px; font-weight: normal; }
+    .loading-overlay, .message-box { padding: 20px; text-align: center; border-radius: 4px; }
+    .loading-overlay { font-weight: bold; }
+    .message-box.success { background-color: #dff0d8; color: #3c763d; }
+    .message-box.error { background-color: #f2dede; color: #a94442; }
+    .radio-group div, .checkbox-group div { margin-bottom: 0.5em; }
+  </style>
+</head>
+<body>
+
+  <div id="app" class="form-container">
+    <h2>タダスク講師を始めてみたい人の申込みフォーム</h2>
+
+    <div v-if="serverMessage" class="message-box" :class="{ success: !isError, error: isError }">
+      {{ serverMessage }}
+    </div>
+    
+    <div v-if="isLoading" class="loading-overlay">
+      データを読み込んでいます...
+    </div>
+
+    <form @submit.prevent="submitForm" v-if="!formSubmitted && !isLoading">
+      
+      <div class="form-group">
+        <label for="main-check">希望する内容を選択</label>
+        <select id="main-check" v-model="form.mainCheck">
+          <option>タダスク講師を希望する</option>
+          <option>その他</option>
+        </select>
+        <input 
+          type="text" 
+          v-if="form.mainCheck === 'その他'" 
+          v-model="form.mainCheckOther" 
+          placeholder="具体的に入力してください" 
+          style="margin-top: 8px;"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="name">お名前<span class="required-mark">*</span></label>
+        <input type="text" id="name" v-model.trim="form.name" @input="onNameInput" autocomplete="off" placeholder="山田 太郎">
+        <ul v-if="suggestions.length > 0" class="suggestions">
+          <li v-for="s in suggestions" :key="s.fullName" @click="selectName(s)">
+            {{ s.fullName }} ({{ s.hiragana }})
+          </li>
+        </ul>
+      </div>
+
+      <div class="form-group">
+        <label for="tadasukeName">タダスクネーム</label>
+        <input type="text" id="tadasukeName" v-model="form.tadasukeName" placeholder="サジェストから選択すると自動入力されます">
+      </div>
+
+      <div class="form-group radio-group">
+        <label>講師への準備開始時期<span class="required-mark">*</span></label>
+        <div><label><input type="radio" value="9月15日（月）" v-model="form.startTime"> 9月15日（月）</label></div>
+        <div><label><input type="radio" value="10月20日（月）" v-model="form.startTime"> 10月20日（月）</label></div>
+        <div><label><input type="radio" value="11月17日（月）" v-model="form.startTime"> 11月17日（月）</label></div>
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label>オプション（希望する方はチェック）</label>
+        <div><label><input type="checkbox" v-model="form.challenge"> チャレンジ講師</label></div>
+      </div>
+
+      <div class="form-group">
+        <label for="freeText">自由記載（ご意見・ご質問など）</label>
+        <textarea id="freeText" rows="4" v-model="form.freeText" placeholder="ご自由にお書きください"></textarea>
+      </div>
+      
+      <button type="submit" :disabled="isSubmitting || !isFormValid">
+        {{ isSubmitting ? '送信中...' : '入力内容を送信する' }}
+      </button>
+    </form>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      // =================================================================
+      // データプロパティ
+      // コンポーネントの状態を管理する変数群
+      // =================================================================
+      data() {
+        return {
+          // --- UIの状態管理 ---
+          isLoading: true,       // マスターデータ読み込み中の状態
+          isSubmitting: false,   // フォーム送信中の状態
+          formSubmitted: false,  // フォーム送信が完了したか
+          serverMessage: '',     // サーバーからの通知メッセージ
+          isError: false,        // 通知がエラーメッセージか
+          
+          // --- データ管理 ---
+          masterNameList: [],    // GASから取得した講師マスターデータの完全なリスト
+          suggestions: [],       // 入力に応じてフィルタリングされたサジェスト候補
+          
+          // --- フォーム入力データ ---
+          // v-modelディレクティブでHTML要素と双方向バインディングされる
+          form: {
+            mainCheck: 'タダスク講師を希望する',
+            mainCheckOther: '',
+            name: '',
+            tadasukeName: '',
+            startTime: '',
+            challenge: false,
+            freeText: ''
+          }
+        }
+      },
+      
+      // =================================================================
+      // 算出プロパティ
+      // データプロパティを元に動的に計算される値
+      // =================================================================
+      computed: {
+        /**
+         * フォームの必須項目が入力されているかを判定します。
+         * @returns {boolean} 必須項目がすべて入力されていればtrue
+         */
+        isFormValid() {
+          // trim()で前後の空白を除去して判定
+          return this.form.name.trim() !== '' && this.form.startTime !== '';
+        }
+      },
+
+      // =================================================================
+      // メソッド
+      // イベントや特定の処理をまとめた関数群
+      // =================================================================
+      methods: {
+        /**
+         * 「お名前」欄に入力があるたびに呼び出され、サジェスト候補を更新します。
+         */
+        onNameInput() {
+          if (!this.form.name) {
+            this.suggestions = [];
+            return;
+          }
+          // 入力値をひらがな化して、マスターデータと比較
+          const inputHira = this.katakanaToHiragana(this.form.name.trim());
+          this.suggestions = this.masterNameList.filter(item => {
+            // ひらがな化したフリガナに、入力値が含まれているかチェック
+            return item.hiragana.includes(inputHira);
+          }).slice(0, 5); // 表示件数を最大5件に制限
+        },
+        
+        /**
+         * サジェスト候補がクリックされたときに呼び出されます。
+         * @param {Object} selected - 選択された講師オブジェクト { fullName, hiragana, nickname }
+         */
+        selectName(selected) {
+          this.form.name = selected.fullName;
+          this.form.tadasukeName = selected.nickname;
+          this.suggestions = []; // 選択後はサジェストリストを閉じる
+        },
+        
+        /**
+         * フォームの送信処理を実行します。
+         */
+        submitForm() {
+          if (!this.isFormValid) {
+            this.serverMessage = '必須項目（お名前、希望開始時期）を入力してください。';
+            this.isError = true;
+            return;
+          }
+
+          this.isSubmitting = true;
+          this.serverMessage = ''; // 古いメッセージをクリア
+
+          // google.script.run を使って、バックエンド(GAS)の関数を非同期で呼び出す
+          google.script.run
+            // サーバー処理が成功した場合のコールバック関数
+            .withSuccessHandler(response => {
+              this.isSubmitting = false;
+              this.serverMessage = response.message;
+              if (response.success) {
+                this.isError = false;
+                this.formSubmitted = true; // 成功したらフォームを非表示にする
+              } else {
+                this.isError = true; // バックエンドがエラーを返した場合
+              }
+            })
+            // サーバーとの通信自体に失敗した場合のコールバック関数
+            .withFailureHandler(error => {
+              this.isSubmitting = false;
+              this.serverMessage = '通信エラーが発生しました: ' + error.message;
+              this.isError = true;
+            })
+            // 実行するGASの関数名と、渡す引数
+            .saveFormData(this.form);
+        },
+        
+        /**
+         * 文字列内のカタカナをひらがなに変換します (サジェストのリアルタイム性のためフロントにも実装)
+         * @param {string} str - 変換対象の文字列
+         * @returns {string} 変換後の文字列
+         */
+        katakanaToHiragana(str) {
+            return str.replace(/[\u30A1-\u30F6]/g, match => String.fromCharCode(match.charCodeAt(0) - 0x60));
+        },
+        
+        /**
+         * バックエンドからマスターデータを取得します。
+         */
+        fetchMasterData() {
+          google.script.run
+            .withSuccessHandler(data => {
+              this.masterNameList = data;
+              this.isLoading = false;
+            })
+            .withFailureHandler(error => {
+              this.serverMessage = 'マスターデータの読み込みに失敗しました。ページを再読み込みしてください。';
+              this.isError = true;
+              this.isLoading = false;
+            })
+            .getMasterData();
+        }
+      },
+      
+      // =================================================================
+      // ライフサイクルフック
+      // 特定のタイミングで自動的に実行される関数
+      // =================================================================
+      /**
+       * Vueインスタンスがマウント（描画準備完了）されたときに実行されます。
+       */
+      mounted() {
+        this.fetchMasterData();
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
