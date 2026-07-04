@@ -25,13 +25,13 @@
     "チャット通知Bot.js"
   ],
   "protectedFiles": {
-    "architecture.html": "162e5df68a7fdcff128c0e98d61b4537c837f00a883ee49c776ea976f0c34aee",
-    "のぐっちさんcss.html": "15db1dcc4e2d622dfd36de6845a279a89f36a6a4f3bec7a98b4fe72bbf1a3902",
-    "のぐっちさんindex.html": "0a69d84b4980dce68a0e0a18679d63675107f1f6a96eca5895ab1fed5eb78dd5",
-    "ヤススさんcode.js": "2177cbb999f30bb5b839006c90d95a44f50974c6e7650841d29fb4b8ba4456ee",
-    "ヤススさんindex.html": "637b8802579f2e70753e8ad94c751bf303c7f33a5bfaadf968b8c1a551598778",
-    "仕様確認.js": "c04572677d2d83810c3bef283279bd23ed4ad90ab7492d3a595c695ea53e1536",
-    "無題.js": "c12c4a1fed413f824b56db3d54947abfdcad1107fdeecc467db3db06a32d2b32"
+    "architecture.html": "bf5a8109682c1f757112566ef54c98ab6ac23a412d6a131585a64ac49b5c9d32",
+    "のぐっちさんcss.html": "48110ed4c783fc55e8c12a5751ef84b2a286c34ff7ae64e117b70c7f07e98d91",
+    "のぐっちさんindex.html": "4b645d2a1089e2c27c8aa931e4196871b6d7ac82dd536efee33c006ef5e1f484",
+    "ヤススさんcode.js": "6ca1abb2c2b85a9ec5b1a4926a669e5d7e6b57fcb84c7338f198fafe697b67ae",
+    "ヤススさんindex.html": "af88ff3280973a9d32e162c49a2c96a96da721fdec0756a47bfddd5618349894",
+    "仕様確認.js": "e39f2124c72dd4e9f6122532bad4361a119945a13380db65f8c36def44a746f5",
+    "無題.js": "60a7f1da1f1691942acb91b37fce6e747f4e8134fccac504a8d59b6a239c4c93"
   },
   "requiredIgnorePatterns": [
     "tests/**",

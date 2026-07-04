@@ -1,5 +1,10 @@
 # Session Handoff
 
+> Current next-work handoff: `NEXT_WORK_HANDOFF.md` (updated 2026-07-05 JST).
+> It records the current cleanup direction: scattered Apps Script files,
+> Script Properties整理, and unresolved issues. Prefer that file for the next
+> session before relying on older notes below.
+
 Updated: 2026-06-16
 
 ## Repository
@@ -9,6 +14,24 @@ Updated: 2026-06-16
 - Bound spreadsheet ID: `YOUR_PRODUCTION_SPREADSHEET_ID`
 - `clasp` account used: `YOUR_GOOGLE_WORKSPACE_ACCOUNT@example.com`
 - This directory is not currently a Git repository.
+
+## Canonical Specification
+
+- Canonical Google Docs specification: `タダスク講師を始めてみたい人の申込みフォーム・仕様書`
+- URL: `https://docs.google.com/document/d/12HICKl_Ir8VnAF-D1ZymDU0Qs3fLEYAunEpm0uEM15M/edit?tab=t.xcggp02bny59`
+- Document ID: `12HICKl_Ir8VnAF-D1ZymDU0Qs3fLEYAunEpm0uEM15M`
+- Tabs: `追加仕様書`, `ファイル`, `旧仕様書（2025）`
+
+This Google Docs document is the canonical specification. Repository documents
+such as `SPEC.md`, `CURRENT_STATE.md`, `DECISIONS.md`, and `architecture.html`
+are derived working documents. When the canonical document changes, merge the
+change into repository documents explicitly and record any implementation
+decision that differs from the source document.
+
+Runtime authority decision: web apps run as the deploying user. Current
+production deploying account is `yukihiro-ogata@tadakayo.jp`; Calendar, Drive,
+and Mail operations use that same authority. Web app access is limited to
+Tadakayo domain users.
 
 ## Completed
 

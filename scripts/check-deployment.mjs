@@ -117,11 +117,19 @@ function readStatusOutput(statusFile) {
   const result = spawnSync(
     'clasp',
     ['status', '--user', 'default'],
-    { cwd: repositoryRoot, encoding: 'utf8' }
+    {
+      cwd: repositoryRoot,
+      encoding: 'utf8',
+      shell: process.platform === 'win32'
+    }
   );
   if (result.status !== 0) {
+    const output = [result.stderr, result.stdout, result.error?.message]
+      .filter(Boolean)
+      .join('\n')
+      .trim();
     throw new Error(
-      `clasp status failed: ${(result.stderr || result.stdout).trim()}`
+      `clasp status failed: ${output || 'unknown error'}`
     );
   }
   return result.stdout;

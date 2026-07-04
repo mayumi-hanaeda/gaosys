@@ -9,5 +9,6 @@ tests/**
 scripts/**
 ops/**
 output/**
+temp/**
 .playwright-mcp/**
 .playwright-cli/**

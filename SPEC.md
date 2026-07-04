@@ -18,13 +18,43 @@ Status: Approved for implementation
 
 ## 2. Source of Truth
 
-1. `DECISIONS.md`のAccepted ADR
-2. 本書
-3. `CURRENT_STATE.md`
-4. `architecture.html`
-5. 現行コード
+The canonical specification is the Google Docs document:
+
+- Title: `タダスク講師を始めてみたい人の申込みフォーム・仕様書`
+- URL: `https://docs.google.com/document/d/12HICKl_Ir8VnAF-D1ZymDU0Qs3fLEYAunEpm0uEM15M/edit?tab=t.xcggp02bny59`
+- Document ID: `12HICKl_Ir8VnAF-D1ZymDU0Qs3fLEYAunEpm0uEM15M`
+- Tabs: `追加仕様書`, `ファイル`, `旧仕様書（2025）`
+
+This repository and its Markdown specifications are derived from that Google
+Docs specification. When the Google Docs canonical specification and repository
+documents diverge, update the repository documents by an explicit merge review;
+do not silently override either side.
+
+Repository-side priority after canonical merge:
+
+1. Google Docs canonical specification after confirmed merge review
+2. `DECISIONS.md`のAccepted ADR
+3. 本書
+4. `CURRENT_STATE.md`
+5. `architecture.html`
+6. 現行コード
 
 競合時は上位文書を優先する。`申込リスト`のCalendar IDはH列、開催日時DataはI列を正とする。
+
+## 2.1 Runtime Authority
+
+The production and test web apps must run as the deploying user
+(`executeAs: USER_DEPLOYING`), not as the accessing user. Calendar, Drive, and
+Mail operations run under the deploying user's authority.
+
+Current production deploying account: `yukihiro-ogata@tadakayo.jp`.
+
+Reason: the application creates and updates events on the deployer's Calendar
+and provisions Drive/Mail resources under the same operational authority. If
+the web app runs as the accessing user, Calendar creation/update can fail when
+the applicant does not have write access to the deployer's Calendar.
+
+Web app access is restricted to users in the Tadakayo domain.
 
 ## 3. Identifiers
 
