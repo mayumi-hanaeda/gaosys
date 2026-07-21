@@ -12,3 +12,5 @@ GAOSYS 作業の大元・大原則は `C:\GAOSYS２\gaosys-github\AGENTS.md` で
 
 作業ディレクトリは `C:\GAOSYS２\gaosys-github` を基準とする。
 本番反映、デプロイ、push、設定変更、権限変更、外部通信、機密情報に関わる操作は、`AGENTS.md` の制約に従うこと。
+
+共同作業、GitHub の正本、直接コミット、競合時だけのブランチ、履歴復旧の方針も `AGENTS.md` の第 0 章に従う。次の作業状態は `NEXT_WORK_HANDOFF.md` を確認し、`SESSION_HANDOFF.md` を現在の判断根拠にしない。

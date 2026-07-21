@@ -47,28 +47,16 @@ excluded.
 
 ## Current Web App Environments
 
-Confirmed on 2026-07-03 JST with `clasp deployments --user default`.
+Deployment ID、URL、実アカウント、実設定値は GitHub に記録しない。作業時は
+`.local/OPERATIONS.md` の記録と `clasp deployments` の実測結果を照合する。
 
-| Environment | Deployment version | Web app URL |
-| --- | ---: | --- |
-| Production | 96 | `https://script.google.com/a/macros/tadakayo.jp/s/AKfycbysLvEjo3I8UBne-auGMNCpm9atyTty6MF0xrgSem6WyyN41cCNec4fKGYz9IxZDM9g1g/exec` |
-| Test | 98 | `https://script.google.com/a/macros/tadakayo.jp/s/AKfycbwdzqmaUHl9iqJaqlGIWPSv1HbEPelCqn5NanbHplV-nbqGzeIuBqV-f7ZJ8Zqv0pGiCA/exec` |
+2026-07-03 JST 時点の記録では、production は version 96、test は version 98 だった。
+これは現在値ではない。デプロイ、設定変更、障害調査、または作業再開時は、必ず
+実環境を再確認してから判断する。
 
-Notes:
-
-- Production currently points to version 96, `fix evaluation sheet reuse for repeat submissions`.
-- Production must run as the deploying user. The current intended production
-  deploying account is `yukihiro-ogata@tadakayo.jp`.
-- Calendar, Drive, and Mail operations must use the same deploying-user
-  authority. Do not update the production deployment from another account unless
-  the Calendar/Drive/Mail permission impact has been reviewed and approved.
-- Web app access is restricted to Tadakayo domain users.
-- Production Calendar registration worked when checked after the 2026-06-30 deployment.
-- The current production issue is that Calendar registration now fails when running the production web app.
-- Test currently points to version 98, `runtime properties externalization test deployment`.
-- Test is expected not to work yet because its Script Properties are not configured.
-- `clasp deployments` exposes deployment ID, version, and description, but does not show the last deployer.
-- To identify the last deployer, use Google Workspace/Admin audit logs or Apps Script project activity records if available.
+Calendar、Drive、Mail の操作権限は web app のデプロイ実行者に依存する。担当者は
+経験を積むためにデプロイ操作を行ってよいが、production の実行者・影響範囲・
+ロールバック方法を事前に確認し、AGENTS.md が求めるユーザー承認を得る。
 
 ## Pre-Push Checklist
 
