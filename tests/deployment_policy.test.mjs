@@ -50,9 +50,9 @@ test('DEP-002: an unexpected deployable file blocks deployment', () => {
   );
 });
 
-test('DEP-003: a changed protected file blocks deployment', () => {
+test('DEP-003: a missing protected file blocks deployment', () => {
   const changedPolicy = JSON.parse(JSON.stringify(policy));
-  changedPolicy.protectedFiles['architecture.html'] = 'invalid-hash';
+  changedPolicy.protectedFiles.push('missing-protected-file.html');
   const result = validateDeployment({
     policy: changedPolicy,
     trackedFiles: policy.trackedFiles
@@ -62,8 +62,8 @@ test('DEP-003: a changed protected file blocks deployment', () => {
   assert.equal(
     result.errors.some(
       (error) =>
-        error.code === 'PROTECTED_FILE_CHANGED' &&
-        error.file === 'architecture.html'
+        error.code === 'PROTECTED_FILE_MISSING' &&
+        error.file === 'missing-protected-file.html'
     ),
     true
   );

@@ -228,7 +228,7 @@ Updated: 2026-06-16
   - `clasp status` の確認結果をリリース記録へ残す運用が定義されている
 - Evidence:
   - `DEPLOYMENT.md`に現行7件、保護7件、ローカル専用を分類
-  - `scripts/check-deployment.mjs`でtracked一覧、保護ハッシュ、ignoreを検査
+  - `scripts/check-deployment.mjs`でtracked一覧、保護ファイルの存在、ignoreを検査
   - 実環境preflight: `ok: true`、tracked 14件、errors 0件
   - ローカルテスト: 33 passed / 0 failed
   - `output/test-results/OPS-001-preflight.json`

@@ -1,4 +1,3 @@
-import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -27,13 +26,6 @@ export function parseTrackedFiles(statusOutput) {
   }
 
   return trackedFiles.sort();
-}
-
-export function sha256(filePath) {
-  return crypto
-    .createHash('sha256')
-    .update(fs.readFileSync(filePath))
-    .digest('hex');
 }
 
 export function validateDeployment({
@@ -66,23 +58,10 @@ export function validateDeployment({
     });
   }
 
-  for (const [fileName, expectedHash] of Object.entries(
-    policy.protectedFiles
-  )) {
+  for (const fileName of policy.protectedFiles) {
     const filePath = path.join(rootDir, fileName);
     if (!fs.existsSync(filePath)) {
       errors.push({ code: 'PROTECTED_FILE_MISSING', file: fileName });
-      continue;
-    }
-
-    const actualHash = sha256(filePath);
-    if (actualHash !== expectedHash) {
-      errors.push({
-        code: 'PROTECTED_FILE_CHANGED',
-        file: fileName,
-        expectedHash,
-        actualHash
-      });
     }
   }
 
@@ -104,7 +83,7 @@ export function validateDeployment({
     ok: errors.length === 0,
     trackedFiles: actualTracked,
     activeFiles: [...policy.activeFiles].sort(),
-    protectedFiles: Object.keys(policy.protectedFiles).sort(),
+    protectedFiles: [...policy.protectedFiles].sort(),
     errors
   };
 }

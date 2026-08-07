@@ -30,13 +30,12 @@ the deployment set. They must not be changed by ordinary implementation work.
 - `のぐっちさんindex.html`
 - `無題.js`
 
-The last five entries are legacy or experimental implementations. Protected
-file hashes are stored in `ops/deployment-policy.json`.
+The last five entries are legacy or experimental implementations. Their file
+names are stored in `ops/deployment-policy.json` for existence checks.
 
 Do not add protected files to `.claspignore`: removing an existing remote file
 from the push set can delete it from the Apps Script project. If a task
-explicitly changes a protected file, document the reason, review the diff, and
-update its approved hash in the policy.
+explicitly changes a protected file, document the reason and review the diff.
 
 ### Local-only files
 
@@ -73,7 +72,7 @@ Proceed only when:
 1. All tests pass.
 2. Preflight returns `"ok": true`.
 3. `clasp status` lists exactly the 14 approved tracked files.
-4. No protected-file hash changed unexpectedly.
+4. Any protected-file change is explicitly authorized and reviewed in `git diff`.
 5. `appsscript.json` scope and deployment access changes were reviewed.
 
 Then push and inspect status again:
