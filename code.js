@@ -346,34 +346,6 @@ function provisionEvaluationSheet_(submission, configuration) {
     }
   }
 
-  const existingNamedFile = findEvaluationFileByName_(
-    config.evaluationFolderId,
-    fileName
-  );
-  if (existingNamedFile) {
-    const permissionResult = grantEvaluationSheetEditor_(
-      existingNamedFile,
-      data.email
-    );
-    if (!permissionResult.ok) {
-      return {
-        status: 'failed',
-        errorCode: 'EVALUATION_PERMISSION_FAILED',
-        reused: true
-      };
-    }
-
-    const fileId = existingNamedFile.getId();
-    properties.setProperty(propertyKey, fileId);
-    return {
-      status: 'success',
-      fileId,
-      fileName,
-      url: existingNamedFile.getUrl(),
-      reused: true
-    };
-  }
-
   let copiedFile;
 
   try {
@@ -407,23 +379,6 @@ function provisionEvaluationSheet_(submission, configuration) {
     url: copiedFile.getUrl(),
     reused: false
   };
-}
-
-/**
- * 評価シート保存フォルダ内から同名ファイルを探す。
- * 2回目以降の申込では講師単位の既存評価シートを再利用する。
- * @param {string} folderId
- * @param {string} fileName
- * @returns {GoogleAppsScript.Drive.File|null}
- */
-function findEvaluationFileByName_(folderId, fileName) {
-  try {
-    const folder = DriveApp.getFolderById(folderId);
-    const files = folder.getFilesByName(fileName);
-    return files.hasNext() ? files.next() : null;
-  } catch (error) {
-    return null;
-  }
 }
 
 /**

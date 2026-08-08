@@ -32,7 +32,12 @@ function createFile(id, url = `https://docs.example.invalid/${id}`) {
   };
 }
 
-function loadSandbox({ existingFile = null, failCopy = false, failPermission = false } = {}) {
+function loadSandbox({
+  existingFile = null,
+  failCopy = false,
+  failPermission = false,
+  filesInFolder = []
+} = {}) {
   const properties = {};
   const copies = [];
   const files = {
@@ -56,7 +61,21 @@ function loadSandbox({ existingFile = null, failCopy = false, failPermission = f
     console,
     DriveApp: {
       getFolderById(id) {
-        return { id };
+        return {
+          id,
+          getFilesByName(name) {
+            const matches = filesInFolder.filter(f => f.name === name);
+            let index = 0;
+            return {
+              hasNext() {
+                return index < matches.length;
+              },
+              next() {
+                return matches[index++].file;
+              }
+            };
+          }
+        };
       },
       getFileById(id) {
         if (!files[id]) throw new Error('file not found');
@@ -155,4 +174,44 @@ test('EVAL-006: permission failure is reported and does not mark success', () =>
   assert.equal(result.status, 'failed');
   assert.equal(result.errorCode, 'EVALUATION_PERMISSION_FAILED');
   assert.equal(properties['EVALUATION_FILE_sub-001'], undefined);
+});
+
+test('EVAL-009: repeat submission with a same-name trashed file creates a new file instead of failing', () => {
+  const fileName = '★【たろう 講師】評価項目チェックシート';
+  const trashedFile = createFile('trashed-file');
+  trashedFile.addEditor = () => {
+    throw new Error('Cannot edit a file in the trash.');
+  };
+  const { sandbox, properties, copies } = loadSandbox({
+    filesInFolder: [{ name: fileName, file: trashedFile }]
+  });
+  const secondSubmission = { ...submission, submissionId: 'sub-002' };
+
+  const result = sandbox.provisionEvaluationSheet_(secondSubmission, configuration);
+
+  assert.equal(result.status, 'success');
+  assert.equal(result.reused, false);
+  assert.notEqual(result.fileId, 'trashed-file');
+  assert.equal(copies.length, 1);
+  assert.equal(trashedFile.editors.length, 0);
+  assert.equal(properties['EVALUATION_FILE_sub-002'], result.fileId);
+});
+
+test('EVAL-010: repeat submission with an existing same-name file always creates a distinct new file', () => {
+  const fileName = '★【たろう 講師】評価項目チェックシート';
+  const existingNamedFile = createFile('existing-named-file');
+  const { sandbox, properties, copies } = loadSandbox({
+    filesInFolder: [{ name: fileName, file: existingNamedFile }]
+  });
+  const secondSubmission = { ...submission, submissionId: 'sub-002' };
+
+  const result = sandbox.provisionEvaluationSheet_(secondSubmission, configuration);
+
+  assert.equal(result.status, 'success');
+  assert.equal(result.reused, false);
+  assert.equal(result.fileName, fileName);
+  assert.notEqual(result.fileId, 'existing-named-file');
+  assert.equal(copies.length, 1);
+  assert.equal(existingNamedFile.editors.length, 0);
+  assert.equal(properties['EVALUATION_FILE_sub-002'], result.fileId);
 });
