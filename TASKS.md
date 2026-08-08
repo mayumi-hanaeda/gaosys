@@ -625,7 +625,7 @@ Updated: 2026-08-08
 
 ### DOC-004 実装後ドキュメントを同期する
 
-- Status: `[ ]`
+- Status: `[-]`
 - Priority: P1
 - Dependencies: REL-002
 - Scope:
@@ -637,6 +637,11 @@ Updated: 2026-08-08
 - Acceptance:
   - To-Be表記が実装済みの状態へ更新されている
   - 実際の設定セル、処理順、失敗時挙動と文書が一致する
+- 2026-08-08 JST 前倒し実施（ユーザー承認）:
+  - `architecture.html`の「現行実装と追加仕様の差分」section（id="gap"）を更新。評価シート発行・index自動転記・自動返信メールの3項目を`TO BE DEVELOPED`から`IMPLEMENTED / NOT DEPLOYED`へ変更し、本番Web版へは未反映である旨を明記
+  - 「生成ファイルの所有・保存場所」項目を`DESIGN DECISION`（未決）から`RESOLVED / DESIGN DECISION`へ変更し、`DECISIONS.md` ADR-001（共有フォルダに確定）を参照するよう修正
+  - 評価シート発行フローの説明から、削除済みの`実行ユーザー`表記・`★`欠落を修正
+  - `REL-002`（本番反映）は未完了のため、本タスク自体は`Dependencies`未充足として`[-]`（進行中）のまま。残りのスコープ（`SPEC.md`、`RUNBOOK.md`、`SESSION_HANDOFF.md`、本ファイルの完了マーキング）は本番反映後に改めて実施する
 
 ## Recommended Execution Order
 

@@ -690,8 +690,8 @@ flowchart LR
       </div>
 
       <div class="grid" style="margin-top:18px">
-        <article class="card flow-card"><span class="step">1</span><h3>評価シート発行</h3><p><code>DriveApp</code>でテンプレートをコピーし、ファイル名を「【タダカヨネーム】評価項目チェックシート」に変更します。</p></article>
-        <article class="card flow-card"><span class="step">2</span><h3>編集権限付与</h3><p>実行ユーザーのメールアドレスを取得し、生成ファイルへ編集者として追加してURLを返します。</p></article>
+        <article class="card flow-card"><span class="step">1</span><h3>評価シート発行</h3><p><code>DriveApp</code>で共有フォルダ（<code>EVALUATION_SHEET_FOLDER_ID</code>）内のテンプレートをコピーし、ファイル名を「★【タダカヨネーム】評価項目チェックシート」に変更します。</p></article>
+        <article class="card flow-card"><span class="step">2</span><h3>編集権限付与</h3><p>申込者のメールアドレスを取得し、生成ファイルへ編集者として追加してURLを返します。Webアプリ自体はデプロイ担当者（<code>USER_DEPLOYING</code>）の権限で実行されます。</p></article>
         <article class="card flow-card"><span class="step">3</span><h3>index自動転記</h3><p>最終行の次へA〜F列を一括設定し、B列へ名前、F列へ生成した評価シートURLを書き込みます。</p></article>
         <article class="card flow-card"><span class="step">4</span><h3>Chat通知拡張</h3><p>既存の申込通知へ「評価項目チェックシート」とURLを追加し、運営がすぐアクセスできるようにします。</p></article>
         <article class="card flow-card"><span class="step">5</span><h3>自動返信メール</h3><p>名前、評価シートURL、フォーム回答控えをテンプレートへ差し込み、申込者へ今後の流れを案内します。</p></article>
@@ -714,8 +714,8 @@ flowchart LR
       <div class="section-head">
         <div class="section-no">05</div>
         <div>
-          <h2>現行実装と追加仕様の差分</h2>
-          <p class="section-copy">仕様書はTo-Beを定義しています。取得済みのGASコードには、追加4機能はまだ実装されていません。</p>
+          <h2>追加仕様の実装状況</h2>
+          <p class="section-copy">評価シート発行・index自動転記・Chat通知拡張・自動返信メールの4機能はコード実装・テストが完了しています。ただし本番Web版へはまだ反映されておらず、現行本番デプロイは既存の受付基盤のみを提供する固定バージョンのままです（反映にはCalendarアクセス整合の再検証と明示承認が必要）。</p>
         </div>
       </div>
 
@@ -726,29 +726,29 @@ flowchart LR
           <p>氏名候補、入力検証、申込リスト保存、カレンダー予定作成・更新、Meet追加、Google Chat通知は現行コードに存在します。</p>
         </article>
         <article class="card status-card">
-          <span class="status-badge todo">TO BE DEVELOPED</span>
+          <span class="status-badge">IMPLEMENTED / NOT DEPLOYED</span>
           <h3>評価シートの自動発行</h3>
-          <p>テンプレートコピー、命名、編集権限付与、URL取得を行う<code>DriveApp</code>モジュールの追加が必要です。</p>
+          <p>テンプレートコピー、命名、編集権限付与、URL取得を行う<code>DriveApp</code>モジュール（<code>provisionEvaluationSheet_</code>）は実装・テスト済みです。本番Web版へは未反映です。</p>
         </article>
         <article class="card status-card">
-          <span class="status-badge todo">TO BE DEVELOPED</span>
+          <span class="status-badge">IMPLEMENTED / NOT DEPLOYED</span>
           <h3>indexへの自動転記</h3>
-          <p>現在は人手中心です。B列とF列を明示した<code>setValues()</code>による追記と、同時実行対策が必要です。</p>
+          <p>B列とF列を明示した<code>setValues()</code>による追記と<code>LockService</code>による同時実行対策を実装・テスト済みです。A列のArrayFormulaは変更しません。本番Web版へは未反映です。</p>
         </article>
         <article class="card status-card">
-          <span class="status-badge todo">TO BE DEVELOPED</span>
+          <span class="status-badge">IMPLEMENTED / NOT DEPLOYED</span>
           <h3>自動返信メール</h3>
-          <p><code>MailApp</code>または<code>GmailApp</code>を使い、設定用シートのテンプレートから個別メールを生成します。</p>
+          <p><code>MailApp</code>を使い、設定用シートのテンプレート（<code>{{tag}}</code>形式のタグ）から個別メールを生成する処理を実装・テスト済みです。本番Web版へは未反映です。</p>
         </article>
         <article class="card status-card">
-          <span class="status-badge gap">SPEC MISMATCH</span>
+          <span class="status-badge gap">SPEC MISMATCH（履歴）</span>
           <h3>申込リストの列位置</h3>
-          <p>旧仕様書はカレンダーIDをJ列、開催日時をK列と記載していますが、現行コードと実シートはH列・I列を使用しています。</p>
+          <p>旧仕様書（2025）はカレンダーIDをJ列、開催日時をK列と記載していますが、現行コードと実シートはH列・I列を使用しています。H/I列を現行仕様の正としてすでに確定済みです。</p>
         </article>
         <article class="card status-card">
-          <span class="status-badge gap">DESIGN DECISION</span>
+          <span class="status-badge">RESOLVED / DESIGN DECISION</span>
           <h3>生成ファイルの所有・保存場所</h3>
-          <p>仕様は実行ユーザーのマイドライブ直下を想定しています。運営の継続管理を優先するなら、共有ドライブまたは管理フォルダへの保存も検討対象です。</p>
+          <p>運営の継続管理を優先し、共有フォルダ（Script Property <code>EVALUATION_SHEET_FOLDER_ID</code>）へ保存する方針で確定しました（<code>DECISIONS.md</code> ADR-001）。実行ユーザー個人のマイドライブ直下へ保存する案は却下されています。</p>
         </article>
       </div>
 
