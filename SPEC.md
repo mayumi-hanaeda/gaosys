@@ -56,7 +56,7 @@ The production and test web apps must run as the deploying user
 (`executeAs: USER_DEPLOYING`), not as the accessing user. Calendar, Drive, and
 Mail operations run under the deploying user's authority.
 
-Current production deploying account: `yukihiro-ogata@tadakayo.jp`.
+Current production deploying account: システム管理・運用責任者のアカウント。
 
 Reason: the application creates and updates events on the deployer's Calendar
 and provisions Drive/Mail resources under the same operational authority. If
@@ -194,9 +194,12 @@ Q列の例:
 | D | 空欄 |
 | E | 空欄 |
 | F | 評価シートへの表示名付きRichTextリンク |
-| G以降 | 既存数式を維持。対象行に数式がなければ直前行から数式のみ複製 |
+| G以降 | GASからは一切操作しない |
 
 F列の表示文字列は生成した評価シートのファイル名とする。
+
+G列以降の数式は、GASによる行追加後も対象行へ自動的に反映されるよう、スプレッドシート側の
+MAP関数（運用者が設定するスプレッドシート数式）で維持する。GAS側で数式を複製する実装は行わない。
 
 同一`submissionId`で登録済みの場合、同じ行を返し新規行を作成しない。`submissionId`とindex行の対応はScript Propertiesの`INDEX_ROW_{submissionId}`へ保存する。
 

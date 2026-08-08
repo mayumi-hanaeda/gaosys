@@ -29,7 +29,7 @@ Status: Approved for TDD
 | REQ-SEC-001 | P0 | 秘密情報と個人情報をログ・戻り値・証跡へ含めない | SPEC 4, 11 |
 | REQ-SCHEMA-001 | P0 | 申込リストA〜I、P、Qへ規定値を書き、J〜Oを変更しない | SPEC 5 |
 | REQ-IDX-001 | P0 | indexのA列を変更せず、B〜F列を仕様どおり設定する | SPEC 5.2 |
-| REQ-IDX-002 | P0 | G列以降の既存数式を維持し、必要時だけ数式を複製する | SPEC 5.2 |
+| REQ-IDX-002 | P0 | G列以降はGASから操作せず、スプレッドシート側のMAP関数で数式を維持する | SPEC 5.2 |
 | REQ-IDX-003 | P0 | indexの行確保をLockService内で行う | SPEC 5.2 |
 | REQ-VAL-001 | P0 | すべての入力をサーバー側で検証し、不正時は外部操作しない | SPEC 6 |
 | REQ-EVAL-001 | P1 | 指定テンプレートを指定フォルダへ規定名で複製する | SPEC 7 |
