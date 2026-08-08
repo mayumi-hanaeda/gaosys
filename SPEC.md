@@ -1,6 +1,6 @@
 # Onboarding Automation Specification
 
-Updated: 2026-06-13
+Updated: 2026-08-08
 Status: Approved for implementation
 
 ## 1. Scope
@@ -23,18 +23,27 @@ The canonical specification is the Google Docs document:
 - Title: `タダスク講師を始めてみたい人の申込みフォーム・仕様書`
 - URL: `https://docs.google.com/document/d/12HICKl_Ir8VnAF-D1ZymDU0Qs3fLEYAunEpm0uEM15M/edit?tab=t.xcggp02bny59`
 - Document ID: `12HICKl_Ir8VnAF-D1ZymDU0Qs3fLEYAunEpm0uEM15M`
-- Tabs: `追加仕様書`, `ファイル`, `旧仕様書（2025）`
+- Tabs:
+  - `追加仕様書`（ルート。運用上の正本・GCPプロジェクト情報・Script Properties仕様）
+    - `作業範囲記述書（SOW）` → 本リポジトリの`SOW.md`に対応
+    - `要件定義書（RD）` → 本リポジトリの`RD.md`に対応
+    - `技術要件定義書（TRD）` → 本リポジトリの`TRD.md`に対応
+    - `データ・インターフェース定義書` → 本書`SPEC.md`に対応
+    - `メール本文` → 実体は本番`設定用!F2:G2`（実値はGitHubに置かない）
+  - `ファイル`（付随ファイル、仕様の直接の正ではない）
+  - `旧仕様書（2025）`（`仕様書`、`技術仕様書`。レガシー、現行仕様の基準にしない）
 
-This repository and its Markdown specifications are derived from that Google
-Docs specification. When the Google Docs canonical specification and repository
-documents diverge, update the repository documents by an explicit merge review;
-do not silently override either side.
+このGoogleドキュメントをGAOSYS開発仕様書の正本とする。本リポジトリの`SPEC.md`、
+`SOW.md`、`RD.md`、`TRD.md`、`CURRENT_STATE.md`、`DECISIONS.md`、`architecture.html`、
+`DEPLOYMENT.md`などは、この正本から派生した作業文書である。正本とGitHub側文書に
+差分が出た場合は、内容を確認したうえで明示的にマージし、必要な設計判断・実装仕様・
+運用変更を記録する。どちらか一方を無断で上書きしない。
 
 Repository-side priority after canonical merge:
 
 1. Google Docs canonical specification after confirmed merge review
 2. `DECISIONS.md`のAccepted ADR
-3. 本書
+3. 本書、`SOW.md`、`RD.md`、`TRD.md`
 4. `CURRENT_STATE.md`
 5. `architecture.html`
 6. 現行コード

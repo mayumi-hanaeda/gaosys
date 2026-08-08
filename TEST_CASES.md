@@ -1,6 +1,6 @@
 # Test Cases and Traceability
 
-Updated: 2026-06-13
+Updated: 2026-08-08
 Status: Approved for TDD
 
 ## Purpose
@@ -86,6 +86,10 @@ Status: Approved for TDD
 | EVAL-006 | REQ-EVAL-002 | abnormal | L2/L3 | editor追加をadapterで失敗 | `EVALUATION_PERMISSION_FAILED`、メールはskipped |
 | EVAL-007 | REQ-EVAL-003 / REQ-ID-002 | retry | L2/L3 | 同一`submissionId`で2回実行 | 2回目は既存file IDを返し、追加コピー0件 |
 | EVAL-008 | REQ-EVAL-003 | abnormal | L2/L3 | Propertyにfile IDがあるがアクセス不能 | failedとして記録し、無条件に再作成しない |
+| EVAL-009 | REQ-EVAL-003 | regression | L1 | 別`submissionId`だが保存先に同名ファイル（ゴミ箱内）が存在 | 名前だけで流用せず新規コピーを作成する |
+| EVAL-010 | REQ-EVAL-003 | regression | L1 | 別`submissionId`だが保存先に同名の既存ファイルが存在 | 常に新規コピーを作成し、既存ファイルへは触れない |
+| EVAL-011 | REQ-EVAL-003 | abnormal | L1 | 冪等キーが指すファイルがゴミ箱にある | `EVALUATION_COPY_FAILED`として失敗し、再利用しない |
+| EVAL-012 | REQ-EVAL-003 / REQ-ID-002 | retry | L1 | 権限付与失敗後、同一`submissionId`で再実行 | 同じコピーを再利用し、追加コピーを作らない |
 
 ## index Tests
 

@@ -1,6 +1,6 @@
 # Deployment Policy
 
-Updated: 2026-06-15
+Updated: 2026-08-08
 
 ## File Classification
 
