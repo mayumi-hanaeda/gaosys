@@ -20,6 +20,7 @@ function createFile(id, url = `https://docs.example.invalid/${id}`) {
   return {
     id,
     editors: [],
+    trashed: false,
     getId() {
       return id;
     },
@@ -28,6 +29,9 @@ function createFile(id, url = `https://docs.example.invalid/${id}`) {
     },
     addEditor(email) {
       this.editors.push(email);
+    },
+    isTrashed() {
+      return this.trashed;
     }
   };
 }
@@ -51,6 +55,7 @@ function loadSandbox({
           };
         }
         copies.push({ fileName, folderId: folder.id, file: copiedFile });
+        files[copiedFile.getId()] = copiedFile;
         return copiedFile;
       }
     }
@@ -128,7 +133,7 @@ test('EVAL-004: evaluation sheet is copied, named, shared, and tracked', () => {
   assert.equal(copies[0].file.editors.includes('member@example.invalid'), true);
 });
 
-test('EVAL-007: existing file for the same submissionId is reused', () => {
+test('EVAL-007: existing file for the same submissionId is reused and permission is re-verified', () => {
   const existingFile = createFile('existing-file');
   const { sandbox, properties, copies } = loadSandbox({ existingFile });
   properties['EVALUATION_FILE_sub-001'] = 'existing-file';
@@ -139,6 +144,27 @@ test('EVAL-007: existing file for the same submissionId is reused', () => {
   assert.equal(result.reused, true);
   assert.equal(result.fileId, 'existing-file');
   assert.equal(copies.length, 0);
+  assert.equal(existingFile.editors.includes('member@example.invalid'), true);
+});
+
+test('EVAL-011: a trashed file tracked for the same submissionId fails instead of being reused', () => {
+  const existingFile = createFile('existing-file');
+  existingFile.trashed = true;
+  const { sandbox, properties, copies } = loadSandbox({ existingFile });
+  properties['EVALUATION_FILE_sub-001'] = 'existing-file';
+
+  const result = sandbox.provisionEvaluationSheet_(submission, configuration);
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(result)),
+    {
+      status: 'failed',
+      errorCode: 'EVALUATION_COPY_FAILED',
+      reused: false
+    }
+  );
+  assert.equal(copies.length, 0);
+  assert.equal(existingFile.editors.length, 0);
 });
 
 test('EVAL-008: inaccessible existing file fails without recreating', () => {
@@ -167,13 +193,34 @@ test('EVAL-005: copy failure does not store an idempotency property', () => {
   assert.equal(properties['EVALUATION_FILE_sub-001'], undefined);
 });
 
-test('EVAL-006: permission failure is reported and does not mark success', () => {
-  const { sandbox, properties } = loadSandbox({ failPermission: true });
+test('EVAL-006: permission failure is reported, does not mark success, but still tracks the copy for retry', () => {
+  const { sandbox, properties, copies } = loadSandbox({ failPermission: true });
   const result = sandbox.provisionEvaluationSheet_(submission, configuration);
 
   assert.equal(result.status, 'failed');
   assert.equal(result.errorCode, 'EVALUATION_PERMISSION_FAILED');
-  assert.equal(properties['EVALUATION_FILE_sub-001'], undefined);
+  assert.equal(properties['EVALUATION_FILE_sub-001'], 'file-1');
+  assert.equal(copies.length, 1);
+});
+
+test('EVAL-012: retrying after a transient permission failure reuses the same copy instead of creating another', () => {
+  const { sandbox, properties, copies } = loadSandbox({ failPermission: true });
+  const firstAttempt = sandbox.provisionEvaluationSheet_(submission, configuration);
+  assert.equal(firstAttempt.status, 'failed');
+  assert.equal(copies.length, 1);
+
+  // The transient permission issue is resolved before the retry.
+  copies[0].file.addEditor = function (email) {
+    this.editors.push(email);
+  };
+
+  const secondAttempt = sandbox.provisionEvaluationSheet_(submission, configuration);
+
+  assert.equal(secondAttempt.status, 'success');
+  assert.equal(secondAttempt.reused, true);
+  assert.equal(secondAttempt.fileId, 'file-1');
+  assert.equal(copies.length, 1);
+  assert.equal(properties['EVALUATION_FILE_sub-001'], 'file-1');
 });
 
 test('EVAL-009: repeat submission with a same-name trashed file creates a new file instead of failing', () => {

@@ -327,16 +327,12 @@ function provisionEvaluationSheet_(submission, configuration) {
     data.name
   );
 
+  let file;
+  let reused = false;
+
   if (existingFileId) {
     try {
-      const existingFile = DriveApp.getFileById(existingFileId);
-      return {
-        status: 'success',
-        fileId: existingFile.getId(),
-        fileName,
-        url: existingFile.getUrl(),
-        reused: true
-      };
+      file = DriveApp.getFileById(existingFileId);
     } catch (error) {
       return {
         status: 'failed',
@@ -344,40 +340,47 @@ function provisionEvaluationSheet_(submission, configuration) {
         reused: false
       };
     }
+
+    if (typeof file.isTrashed === 'function' && file.isTrashed()) {
+      return {
+        status: 'failed',
+        errorCode: 'EVALUATION_COPY_FAILED',
+        reused: false
+      };
+    }
+    reused = true;
+  } else {
+    try {
+      const folder = DriveApp.getFolderById(config.evaluationFolderId);
+      const template = DriveApp.getFileById(config.evaluationTemplateId);
+      file = template.makeCopy(fileName, folder);
+    } catch (error) {
+      return {
+        status: 'failed',
+        errorCode: 'EVALUATION_COPY_FAILED',
+        reused: false
+      };
+    }
+    // 権限付与前に保存する。権限付与が失敗しても、再実行で同じコピーを
+    // 再利用させ、コピーの孤立増殖を防ぐため。
+    properties.setProperty(propertyKey, file.getId());
   }
 
-  let copiedFile;
-
-  try {
-    const folder = DriveApp.getFolderById(config.evaluationFolderId);
-    const template = DriveApp.getFileById(config.evaluationTemplateId);
-    copiedFile = template.makeCopy(fileName, folder);
-  } catch (error) {
-    return {
-      status: 'failed',
-      errorCode: 'EVALUATION_COPY_FAILED',
-      reused: false
-    };
-  }
-
-  const permissionResult = grantEvaluationSheetEditor_(copiedFile, data.email);
+  const permissionResult = grantEvaluationSheetEditor_(file, data.email);
   if (!permissionResult.ok) {
     return {
       status: 'failed',
       errorCode: 'EVALUATION_PERMISSION_FAILED',
-      reused: false
+      reused
     };
   }
 
-  const fileId = copiedFile.getId();
-  properties.setProperty(propertyKey, fileId);
-
   return {
     status: 'success',
-    fileId,
+    fileId: file.getId(),
     fileName,
-    url: copiedFile.getUrl(),
-    reused: false
+    url: file.getUrl(),
+    reused
   };
 }
 

@@ -49,9 +49,28 @@ function createSubmissionSheet() {
   };
 }
 
+function createDriveFile(id, url = `https://docs.example.invalid/${id}`) {
+  return {
+    editors: [],
+    getId() {
+      return id;
+    },
+    getUrl() {
+      return url;
+    },
+    addEditor(email) {
+      this.editors.push(email);
+    },
+    isTrashed() {
+      return false;
+    }
+  };
+}
+
 function loadSandbox({
   overrides = {},
-  calendarEventId = 'event-001'
+  calendarEventId = 'event-001',
+  driveApp = null
 } = {}) {
   const logs = [];
   const submissionSheet = createSubmissionSheet();
@@ -64,6 +83,7 @@ function loadSandbox({
       };
     }
   };
+  const propertyStore = {};
   const sandbox = {
     console: {
       log(message) {
@@ -78,6 +98,14 @@ function loadSandbox({
         return calendarEventId;
       },
       addMeetLinkToEvent() {}
+    },
+    DriveApp: driveApp || {
+      getFolderById() {
+        throw new Error('DriveApp is not configured for this test');
+      },
+      getFileById() {
+        throw new Error('DriveApp is not configured for this test');
+      }
     },
     HtmlService: {},
     LockService: {
@@ -95,9 +123,11 @@ function loadSandbox({
             if (key === 'GAOSYS_SPREADSHEET_ID') {
               return 'configured-spreadsheet-id';
             }
-            return '';
+            return propertyStore[key] || '';
           },
-          setProperty() {}
+          setProperty(key, value) {
+            propertyStore[key] = value;
+          }
         };
       }
     },
@@ -152,13 +182,15 @@ function loadSandbox({
       chatWebhookUrl: 'https://example.invalid/webhook'
     }
   });
-  sandbox.provisionEvaluationSheet_ = () => ({
-    status: 'success',
-    fileId: 'file-001',
-    fileName: '★【たろう】評価項目チェックシート',
-    url: 'https://docs.example.invalid/evaluation',
-    reused: false
-  });
+  if (!driveApp) {
+    sandbox.provisionEvaluationSheet_ = () => ({
+      status: 'success',
+      fileId: 'file-001',
+      fileName: '★【たろう】評価項目チェックシート',
+      url: 'https://docs.example.invalid/evaluation',
+      reused: false
+    });
+  }
   sandbox.registerIndexRow_ = () => ({
     status: 'success',
     row: 2,
@@ -181,7 +213,7 @@ function loadSandbox({
 
   Object.assign(sandbox, overrides);
 
-  return { sandbox, logs, submissionSheet };
+  return { sandbox, logs, submissionSheet, propertyStore };
 }
 
 const validForm = {
@@ -352,4 +384,83 @@ test('FLOW-007: server validation stops before configuration and calendar', () =
   assert.equal(result.operations.calendar, 'skipped');
   assert.equal(configurationCalls, 0);
   assert.equal(submissionSheet.rows.length, 0);
+});
+
+// E2E-EVAL-001/002: the real provisionEvaluationSheet_ (not a stub) runs
+// inside the full saveFormData flow, so the fix applied to it (idempotency
+// key saved right after copy, permission re-checked on reuse, trashed files
+// rejected) is exercised end-to-end and its blast radius on the surrounding
+// flow (calendar, submission, index, chat, mail) can be confirmed directly.
+function buildDriveApp({ failPermission = false } = {}) {
+  const folder = { id: 'folder-id' };
+  const template = {
+    makeCopy(fileName) {
+      const file = createDriveFile('evaluation-file-001');
+      if (failPermission) {
+        file.addEditor = () => {
+          throw new Error('permission failed');
+        };
+      }
+      file.fileName = fileName;
+      return file;
+    }
+  };
+  return {
+    getFolderById(id) {
+      if (id !== folder.id) throw new Error('folder not found');
+      return folder;
+    },
+    getFileById(id) {
+      if (id !== 'template-id') throw new Error('file not found');
+      return template;
+    }
+  };
+}
+
+test('E2E-EVAL-001: full flow succeeds through the real evaluation sheet provisioning, calendar/submission/chat unaffected', () => {
+  const { sandbox, submissionSheet, propertyStore } = loadSandbox({
+    driveApp: buildDriveApp()
+  });
+
+  const result = sandbox.saveFormData(validForm);
+
+  assert.equal(result.success, true);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(result.operations)),
+    {
+      calendar: 'success',
+      submission: 'success',
+      evaluationSheet: 'success',
+      index: 'success',
+      chat: 'success',
+      mail: 'success'
+    }
+  );
+  assert.equal(submissionSheet.rows.length, 1);
+  assert.equal(
+    propertyStore['EVALUATION_FILE_submission-001'],
+    'evaluation-file-001'
+  );
+});
+
+test('E2E-EVAL-002: a real evaluation sheet permission failure only skips index/mail, leaving calendar/submission/chat and overall success unaffected', () => {
+  const { sandbox, submissionSheet } = loadSandbox({
+    driveApp: buildDriveApp({ failPermission: true })
+  });
+
+  const result = sandbox.saveFormData(validForm);
+
+  assert.equal(result.success, true);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(result.operations)),
+    {
+      calendar: 'success',
+      submission: 'success',
+      evaluationSheet: 'failed',
+      index: 'skipped',
+      chat: 'success',
+      mail: 'skipped'
+    }
+  );
+  assert.equal(submissionSheet.rows.length, 1);
 });

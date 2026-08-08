@@ -312,6 +312,14 @@ Updated: 2026-06-16
   - 実Drive作成は本番設定未完了のため未実行
   - `output/test-results/IMP-002-tests.xml`
   - `output/test-results/IMP-002-preflight.json`
+- 2026-08-08 JST 不具合修正:
+  - 不具合: 同一講師の連続申込で、ファイル名一致による探索（`findEvaluationFileByName_`、未仕様）が過去の評価シート（ゴミ箱内も含む）を誤って発見し、権限付与に失敗して`EVALUATION_PERMISSION_FAILED`になっていた
+  - 対応: `findEvaluationFileByName_`を削除し、`submissionId`のみを冪等キーとする仕様（`SPEC.md` 7.3節）どおりに一本化。申込単位で新しい評価シートを作成する（同名ファイルの重複を許容）
+  - 追加修正: 冪等性キーをコピー成功直後（権限付与前）に保存し、権限付与だけが失敗した場合の孤立コピー増殖を防止。既存ファイル再利用時も毎回権限を再確認・再付与。冪等性キーが指すファイルがゴミ箱にある場合は再利用せず失敗として扱う
+  - Red→Green: `tests/evaluation_provisioning.test.mjs`にEVAL-009〜012を追加、ローカル全69件成功
+  - E2E回帰: `tests/flow_orchestration.test.mjs`にE2E-EVAL-001/002を追加し、実装（スタブでない）`provisionEvaluationSheet_`を`saveFormData`全体フローで実行。Calendar・申込保存・Chatへの影響がないことを確認、ローカル全71件成功
+  - `SPEC.md` 7.3節、`RUNBOOK.md`（評価シート発行失敗・再実行前の重複確認）を実装と一致するよう更新
+  - 本番未反映（`@86`は無影響）。index G列以降の数式複製漏れ（別件）はスプレッドシート側のMAP関数で対応予定のためコード変更なし
 
 ### IMP-003 index自動転記を実装する
 

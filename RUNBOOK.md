@@ -1,6 +1,6 @@
 # Incident Recovery Runbook
 
-Updated: 2026-06-15
+Updated: 2026-08-08
 
 ## Purpose
 
@@ -66,13 +66,14 @@ Calendar H/I列と対象日時の予定を照合して開発者へ連携する�
 
 1. 申込保存とCalendarが成功していることを確認する。
 2. `設定用!E2`と`EVALUATION_SHEET_FOLDER_ID`の存在・アクセス権を確認する。
-3. `EVALUATION_FILE_{submissionId}`と保存先フォルダを確認する。
-4. ファイルが既にあれば新規コピーせず、名前と申込者の編集権限を確認する。
-5. コピーまたは権限を修復後、同じ`submissionId`で評価シート以降を再実行する。
+3. `EVALUATION_FILE_{submissionId}`を確認する。冪等性キーはコピー成功直後（権限付与の前）に保存されるため、権限付与だけが失敗した場合もこのキーは同じコピーを指している。
+4. キーが指すファイルがゴミ箱にある場合は、新規コピーへ差し替えず`EVALUATION_COPY_FAILED`として扱い、ファイルの復元またはキーの削除を開発者と判断する。
+5. ゴミ箱でなければ、同じ`submissionId`で評価シート以降を再実行する。権限は毎回自動で再確認・再付与される。
 6. 評価シート成功前はメールを送信しない。
 7. Chatには「評価シート発行失敗・要手動対応」が通知されているか確認する。
+8. 同一講師の再申込では、ファイル名が過去の評価シートと重複していても正常（申込単位で新しい評価シートを発行する仕様）。同名だけを理由にファイルを統合・削除しない。
 
-完了条件: 評価シートが1件、編集権限あり、URLが申込状態へ記録されている。
+完了条件: 対象`submissionId`の評価シートが1件、編集権限あり、URLが申込状態へ記録されている。
 
 ## index登録失敗
 
@@ -124,7 +125,7 @@ Calendar H/I列と対象日時の予定を照合して開発者へ連携する�
 | --- | --- |
 | Calendar | H列event ID、I列日時、Calendar上の同日時予定 |
 | Submission | P列`submissionId`の件数が1件 |
-| Evaluation | `EVALUATION_FILE_{submissionId}`と保存先の同名ファイル |
+| Evaluation | `EVALUATION_FILE_{submissionId}`（同名ファイルの存在は重複の判断材料にしない） |
 | index | `INDEX_ROW_{submissionId}`、B列名、F列リンク |
 | Chat | `CHAT_SENT_{submissionId}`と対象スペースの通知 |
 | Mail | `MAIL_SENT_{submissionId}`と送信済みメール |
