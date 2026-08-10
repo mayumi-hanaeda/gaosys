@@ -1,6 +1,6 @@
 # Onboarding Automation Specification
 
-Updated: 2026-08-08
+Updated: 2026-08-09
 Status: Approved for implementation
 
 ## 1. Scope
@@ -107,21 +107,31 @@ E1〜G1の正確な値:
 
 ### 4.2 Script Properties
 
-| Key | Required | Secret | Purpose |
-| --- | --- | --- | --- |
-| `GAOSYS_SPREADSHEET_ID` | yes | no | 本番スプレッドシートID |
-| `GAOSYS_SPREADSHEET_ID_OVERRIDE` | isolated test only | no | 隔離検証時のSpreadsheet差し替え |
-| `CHAT_WEBHOOK_URL` | yes | yes | Google Chat Incoming Webhook |
-| `EVALUATION_SHEET_FOLDER_ID` | yes | no | 評価シート保存先 |
-| `LOGO_IMAGE_URL` | recommended | no | フォーム上部ロゴ画像URL |
-| `SUPPORT_STATUS_SPREADSHEET_URL` | recommended | no | Chat通知に含める管理シートURL |
-| `TEST_SPREADSHEET_ID` | integration only | no | 非本番統合テスト |
-| `TEST_CALENDAR_ID` | integration only | no | 非本番統合テスト |
-| `TEST_EVALUATION_FOLDER_ID` | integration only | no | 非本番統合テスト |
-| `TEST_CHAT_WEBHOOK_URL` | integration only | yes | 非本番Chat |
-| `TEST_MAIL_RECIPIENT` | integration only | personal | 非本番メール宛先 |
+| Key | Required | Secret | Purpose | Status (本番, 2026-08-09時点) |
+| --- | --- | --- | --- | --- |
+| `GAOSYS_SPREADSHEET_ID` | yes | no | 本番スプレッドシートID | 設定済み |
+| `GAOSYS_SPREADSHEET_ID_OVERRIDE` | isolated test only | no | 隔離検証時のSpreadsheet差し替え | 未設定（本番では設定しない） |
+| `CHAT_WEBHOOK_URL` | yes | yes | Google Chat Incoming Webhook | 設定済み |
+| `EVALUATION_SHEET_FOLDER_ID` | yes | no | 評価シート保存先 | 設定済み |
+| `LOGO_IMAGE_URL` | recommended | no | フォーム上部ロゴ画像URL | 設定済み（2026-08-09に補完） |
+| `SUPPORT_STATUS_SPREADSHEET_URL` | recommended | no | Chat通知に含める管理シートURL | 未設定 |
+| `TEST_SPREADSHEET_ID` | integration only | no | 非本番統合テスト | 本番では設定しない |
+| `TEST_CALENDAR_ID` | integration only | no | 非本番統合テスト | 本番では設定しない |
+| `TEST_EVALUATION_FOLDER_ID` | integration only | no | 非本番統合テスト | 本番では設定しない |
+| `TEST_CHAT_WEBHOOK_URL` | integration only | yes | 非本番Chat | 本番では設定しない |
+| `TEST_MAIL_RECIPIENT` | integration only | personal | 非本番メール宛先 | 本番では設定しない |
 
-秘密値と個人情報をログ、戻り値、テスト証跡へ含めない。
+`TEST_*`系のキーは、非本番の隔離Apps Scriptプロジェクト（`TDD-005`参照）
+にのみ設定する。2026-08-09時点で、過去に本番Script Propertiesへ誤って
+残置されていた`TEST_*`系5件を削除済み（詳細は`TASKS.md` OPS-003）。
+
+上記に加えて、申込単位の冪等性キー（`EVALUATION_FILE_{submissionId}`等）
+が存在する。詳細は7.3節を参照。これらは定期的な棚卸し・削除の対象になり
+うるが、削除は任意（完了済み申込みの再送信防止という役割を終えているだけ
+で、放置しても動作に影響しない）。
+
+秘密値と個人情報をログ、戻り値、テスト証跡へ含めない。実値はGitHubへ書か
+ない（キー名のみ記載可）。
 
 ### 4.3 Configuration Result
 

@@ -1,6 +1,6 @@
 # Implementation Tasks
 
-Updated: 2026-08-08
+Updated: 2026-08-09
 
 ## Purpose
 
@@ -190,6 +190,13 @@ Updated: 2026-08-08
 - Evidence:
   - `output/test-results/TDD-005-tests.xml`
   - `output/test-results/TDD-005-integration.json`
+  - 2026-08-08〜09 JST: 旧隔離環境のscriptIdが不明・アクセス不可となったため、
+    新規の隔離Apps Script + GCPプロジェクト（`gaosys-shirokuma-nogucchi`）を
+    再構築。本番Spreadsheet/Calendar/Script Propertiesには一切接続しない
+    構成で、`GAOSYS_SPREADSHEET_ID_OVERRIDE`によるルーティングのみ使用
+  - 検証完了後、この隔離環境のScript Properties（テスト用ルーティング設定
+    一式）は全件削除済み。再検証時は`provisionIntegrationTestResources`が
+    自動的に再作成する
 
 ## Phase 2: Security and Operations
 
@@ -255,6 +262,39 @@ Updated: 2026-08-08
   - 削除前確認、バックアップ、同一`submissionId`再実行を必須化
   - ローカルテスト: 36 passed / 0 failed
   - `output/test-results/OPS-002-tests.xml`
+
+### OPS-003 本番Script Propertiesを整理し、不足設定を補う
+
+- Status: `[x]`
+- Priority: P2
+- Source: ユーザー指示（2026-08-09 JST）
+- Dependencies: なし
+- Deliverables:
+  - 本番Script Propertiesの棚卸しと不要キーの削除
+  - 不足していた推奨設定の補完
+- Acceptance:
+  - コード側の参照パターン（固定キー・`EVALUATION_FILE_*`等の申込単位
+    冪等性キー・`TEST_*`）と実際のScript Propertiesを突き合わせ、
+    使用中/完了済み/要確認/不要を分類した上でユーザー承認を得てから削除する
+  - 削除前に一覧をユーザーへ提示し、承認範囲のみ削除する
+- Evidence:
+  - 2026-08-09 JST: 本番Script Properties 36件を棚卸し。内訳は
+    現役設定4件、正常完了済み申込みの冪等性キー24件（`CHAT_SENT_*`
+    `EVALUATION_FILE_*` `INDEX_ROW_*` `MAIL_SENT_*`）、本番に残っていた
+    隔離テスト用リソース5件（`TEST_*`）、要確認3件
+    （`CHAT_SENT_*`のみ存在し評価シート・index・メールのキーが無い
+    2026-06-30付の申込み3件、旧不具合期間と一致）
+  - ユーザー承認のうえ、正常完了済み24件＋隔離テスト用残置5件の
+    計29件を削除。要確認3件は削除せず保留
+  - 隔離テスト環境（`gaosys-shirokuma-nogucchi`）側に残っていた
+    検証用Script Properties7件も、検証完了後に全件削除
+  - `LOGO_IMAGE_URL`が本番Script Propertiesに未設定であることを発見。
+    `index.html`側は既に`<?= logoImageUrl ?>`によるテンプレート参照
+    実装済みで、コード変更は不要と判明。ユーザーから正しい値の提供を
+    受け、本番Script Propertiesへ設定
+  - 未解決の残課題: `CHAT_SENT_*`のみ存在する3件の申込みについて、
+    実際に評価シート等が最後まで完了したかどうかの確認は未実施
+    （ユーザーの判断待ち）
 
 ## Phase 3: Implementation
 
@@ -622,6 +662,16 @@ Updated: 2026-08-08
   - ロールバック後のdry-run: 12 passed / 0 failed、external writes 0
   - ブロッカー対応手順: `RELEASE_BLOCKER_CALENDAR_ACCESS.md`
   - `output/test-results/REL-002-production-attempt-rollback-20260618.json`
+  - 2026-08-09 JST 追加検証（本番非接続の隔離環境、TDD-005参照）:
+    `code.js`の「既存予定IDが見つからない場合は新規予定作成へフォールバック
+    する」処理が、実在しない予定IDでの更新失敗ケースを正しくリカバリー
+    することを確認した（フォールバックで新規予定を作成し成功）
+  - この検証は「予定IDが古い/存在しない」サブケースの是正を確認したもの
+    であり、REL-002本体のブロッカー（デプロイ実行アカウントが
+    `設定用!B2`のCalendarへ書き込み権限を持たない、という権限設定の問題）
+    そのものを解消するものではない。`RELEASE_BLOCKER_CALENDAR_ACCESS.md`
+    記載の運用手順（Calendar ID復元＋権限共有）は引き続き必須
+  - Status・Blockerは変更なし（`[!]`のまま、本番反映は未実施）
 
 ### DOC-004 実装後ドキュメントを同期する
 

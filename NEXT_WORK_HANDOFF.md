@@ -1,6 +1,6 @@
 # 次作業ハンドオフ
 
-更新日: 2026-08-08 JST
+更新日: 2026-08-09 JST
 
 ## 引継ぎ時点の確定状態
 
@@ -9,6 +9,21 @@
 - 現在の基準コミットと復旧点は、作業開始時に必ず `git log --oneline -5` で実測する（本書の記載は作成時点のスナップショットであり、時間経過で古くなる）。2026-08-08 JST 時点の最新コミットは `eb38612`（`fix: prevent orphaned evaluation-sheet copies and reject trashed reuse`）。
 - ローカルテストは `node --test tests/*.test.mjs` で71件成功・0件失敗（2026-08-08 JST 時点）。`node scripts/check-deployment.mjs` は `ok: true`。
 - Apps Script への `clasp push`（`@HEAD` のみ、動作確認用）は2026-08-08 JSTに実施したが、production deployment（固定バージョン）の更新・deploy操作は行っていない。
+
+## 2026-08-09 更新: Calendarフォールバック検証、本番Script Properties整理、ロゴURL補完
+
+- **Calendarフォールバック検証**: `REL-002`（`RELEASE_BLOCKER_CALENDAR_ACCESS.md`）に関連し、`code.js`の「既存予定IDが見つからない場合は新規予定作成へフォールバックする」処理が実際に機能するかを、本番に一切接続しない新規の隔離Apps Script + GCPプロジェクト（`gaosys-shirokuma-nogucchi`）上で検証した。旧TDD-005隔離環境のscriptIdは不明・アクセス不能だったため、新規に構築した。
+  - 初回の検証手法（`deleteEvent()`で実イベントを削除）は、Calendarも Driveのゴミ箱と同様の「即時には存在しない扱いにならない」挙動があり、狙った状態を再現できず失敗した。
+  - 手法を「申込リストH列の予定IDを実在しない偽IDへ直接書き換える」方式に修正して再実行した結果、フォールバックが正しく発動し、新規予定の作成に成功した（`verdict.ok: true`）。
+  - **重要な限定事項**: この検証が確認したのは「予定IDが古い/存在しない」サブケースの是正のみ。REL-002本体のブロッカー（デプロイ実行アカウントが`設定用!B2`のCalendarへ書き込み権限を持たない、という権限設定の問題）そのものは未解消。`RELEASE_BLOCKER_CALENDAR_ACCESS.md`記載の運用手順（Calendar ID復元＋権限共有）は引き続き必須。REL-002のStatusは`[!]`のまま変更していない。
+  - 検証完了後、隔離環境側に残っていたテスト用Script Properties7件は全件削除済み。
+  - 詳細: `TASKS.md` REL-002・TDD-005各節、`RELEASE_BLOCKER_CALENDAR_ACCESS.md`の「Update 2026-08-09」節。
+
+- **本番Script Propertiesの整理**: ユーザー指示により本番Script Properties（36件）を棚卸し。ユーザー承認を得たうえで、正常完了済み申込みの冪等性キー24件（`CHAT_SENT_*` `EVALUATION_FILE_*` `INDEX_ROW_*` `MAIL_SENT_*`）と、本番に誤って残置されていた隔離テスト用リソース5件（`TEST_*`、実メールアドレスを含むものあり）の計29件を削除した。
+  - 削除せず保留にした3件: `CHAT_SENT_*`のみ存在し、評価シート・index・メール送信のキーが存在しない2026-06-30付の申込み3件。旧不具合発生期間と一致するため、該当講師への評価シート発行が実際に完了しているかどうかの確認が別途必要（未着手、ユーザー判断待ち）。
+  - 詳細: `TASKS.md` OPS-003節。
+
+- **ロゴ画像URLの補完**: 本番フォームにロゴが表示されない状態だったのは、`code.js`/`index.html`側の実装（`LOGO_IMAGE_URL`をScript Propertiesから読み込みテンプレート表示する仕組み）はすでに完成していたが、肝心のScript Property自体が未設定だったため。値の履歴はGit管理外のため、いつ・なぜ空になったかは特定できなかった。ユーザーから正しい値の提供を受け、本番`LOGO_IMAGE_URL`へ設定した。コード変更は不要だった。新規デプロイも不要（Script Propertiesは`doGet()`実行時に都度読み込まれるため）。
 
 ## 2026-08-08 更新: Google Docs正本との整合性確認とGitHub文書構成の同期
 

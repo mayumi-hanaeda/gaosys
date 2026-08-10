@@ -63,7 +63,28 @@ Alternative:
 10. If Calendar, submission, evaluation sheet, index, Chat, or mail fails,
    immediately redeploy version 86.
 
+## Update 2026-08-09: Partial Mitigation Verified (Not a Resolution)
+
+A related but distinct failure mode was verified in a fully isolated,
+non-production Apps Script + GCP project (separate from any production
+resource): when the Calendar event ID stored for a submission no longer
+exists on an otherwise-writable Calendar, `saveFormData` now falls back to
+creating a new event and succeeds, instead of failing outright.
+
+This confirms the code correctly recovers from a *stale/deleted event ID on
+a Calendar the deployment account can already write to*. It does **not**
+confirm or fix the root cause recorded above, which was a *permission*
+problem: the deployment execution account could not write to the Calendar
+configured in `設定用!B2` at all. If that access problem recurs, the
+fallback's new-event-creation attempt will fail for the same reason the
+original attempt did.
+
+The Safe Retry Sequence below is still required before any production
+release attempt. This update does not change the blocker status.
+
 ## Evidence
 
 - `output/test-results/REL-002-production-attempt-rollback-20260618.json`
 - `TASKS.md` REL-002 section
+- `TASKS.md` TDD-005 section (2026-08-09 isolated environment rebuild and
+  fallback verification)
